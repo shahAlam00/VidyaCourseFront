@@ -1,0 +1,101 @@
+import { Routes, Route, useLocation } from "react-router-dom";
+
+import Home from "./pages/Home";
+import Courses from "./pages/Courses";
+import CourseDetails from "./pages/CourseDetails";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import StudentDashboard from "./pages/StudentDashboard";
+
+import Footer from "./components/Footer";
+import Navbar from "./components/Navbar";
+import About from "./components/About";
+import Contact from "./components/Contact";
+import Success from "./components/Success";
+import CoursePlayer from "./components/CoursePlayer";
+import SuccessStory from "./pages/SuccessStory";
+import ScrollToTop from "./components/ScrollToTop";
+
+function App() {
+  const location = useLocation();
+
+  const isPlayerPage =
+    location.pathname.startsWith("/watch/");
+
+  const isAuthPage =
+    location.pathname === "/login" ||
+    location.pathname === "/register";
+
+  const hideLayout =
+    isPlayerPage || isAuthPage;
+
+  return (
+    <>
+      {/* Automatically scroll to top whenever route changes */}
+      <ScrollToTop />
+
+      {!hideLayout && <Navbar />}
+
+      <Routes>
+        <Route
+          path="/"
+          element={<Home />}
+        />
+
+        <Route
+          path="/courses"
+          element={<Courses />}
+        />
+
+        <Route
+          path="/courses/:id"
+          element={<CourseDetails />}
+        />
+
+        <Route
+          path="/watch/:courseId"
+          element={<CoursePlayer />}
+        />
+
+        <Route
+          path="/success"
+          element={<Success />}
+        />
+
+        <Route
+          path="/success/stories"
+          element={<SuccessStory />}
+        />
+
+        <Route
+          path="/about"
+          element={<About />}
+        />
+
+        <Route
+          path="/contact"
+          element={<Contact />}
+        />
+
+        <Route
+          path="/login"
+          element={<Login />}
+        />
+
+        <Route
+          path="/register"
+          element={<Register />}
+        />
+
+        <Route
+          path="/student/dashboard"
+          element={<StudentDashboard />}
+        />
+      </Routes>
+
+      {!hideLayout && <Footer />}
+    </>
+  );
+}
+
+export default App;
