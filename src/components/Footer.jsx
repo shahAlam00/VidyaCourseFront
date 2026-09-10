@@ -10,7 +10,7 @@ import {
   FaEnvelope 
 } from 'react-icons/fa';
 import { IoLocationSharp } from 'react-icons/io5';
-import Logo from '../assets/logo.png'; // Update path to your logo if needed
+import Logo from '../assets/Logo.png'; // Update path to your logo if needed
 
 const Footer = () => {
   return (
