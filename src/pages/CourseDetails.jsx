@@ -13,14 +13,25 @@ import {
   FaCheck 
 } from "react-icons/fa";
 import API from "../utils/axios";
-
+import LoginModal from "../components/LoginModel";
 export default function CourseDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [enrolling, setEnrolling] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+
+  const handleEnrollClick = () => {
+    if (!isLoggedIn) {
+      setIsLoginModalOpen(true); // User logged in nahi hai, to popup khol do
+    } else {
+      // Payment/Checkout par bhejo
+      console.log("Proceeding to checkout");
+    }
+  };
   useEffect(() => {
     API.get(`/courses/${id}`)
       .then((res) => {
@@ -50,10 +61,17 @@ export default function CourseDetails() {
       .finally(() => setLoading(false));
   }, [id]);
 
-  // Razorpay Payment Handler
-// Razorpay Payment Handler
+  // Razorpay Payment Handler with Direct Login Redirect
   const handleEnroll = async () => {
     try {
+      // Check if user is logged in (checking common token keys in localStorage)
+      const token = localStorage.getItem("token") || localStorage.getItem("authToken") || localStorage.getItem("accessToken");
+      
+      if (!token) {
+        navigate("/login");
+        return;
+      }
+
       setEnrolling(true);
 
       // 1. Load Razorpay script dynamically
@@ -80,13 +98,13 @@ export default function CourseDetails() {
 
       // 3. Open Razorpay Checkout Modal
       const options = {
-        key: response.key || import.meta.env.VITE_RAZORPAY_KEY_ID || "YOUR_RAZORPAY_KEY_ID", // Apni Razorpay Key yahan ya .env me dalein
+        key: response.key || import.meta.env.VITE_RAZORPAY_KEY_ID || "YOUR_RAZORPAY_KEY_ID",
         amount: orderDetails.amount,
         currency: orderDetails.currency,
         name: "DigiCampus Academy",
         description: course.title,
         image: course.image,
-        order_id: orderDetails.orderId, // Backend se orderId aa raha hai
+        order_id: orderDetails.orderId,
         handler: async function (paymentResponse) {
           try {
             // 4. Verify Payment on Backend
@@ -127,6 +145,7 @@ export default function CourseDetails() {
       setEnrolling(false);
     }
   };
+
   // Helper function to load Razorpay script dynamically
   const loadScript = (src) => {
     return new Promise((resolve) => {
@@ -142,7 +161,67 @@ export default function CourseDetails() {
     });
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-slate-500 font-semibold pt-28">Loading...</div>;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 text-slate-900 pt-28 pb-20 px-4 sm:px-6 lg:px-8 animate-pulse">
+        <div className="max-w-7xl mx-auto space-y-8">
+          
+          {/* Back Button Skeleton */}
+          <div className="w-32 h-4 bg-slate-200 rounded" />
+
+          {/* Hero Section Skeleton */}
+          <div className="rounded-3xl bg-slate-200 p-6 sm:p-10 shadow-lg relative overflow-hidden h-96">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center h-full">
+              <div className="lg:col-span-2 space-y-4">
+                <div className="flex gap-3">
+                  <div className="w-24 h-6 bg-slate-300 rounded-full" />
+                  <div className="w-28 h-6 bg-slate-300 rounded-full" />
+                </div>
+                <div className="w-3/4 h-10 bg-slate-300 rounded-lg" />
+                <div className="w-full h-16 bg-slate-300 rounded-lg" />
+                <div className="flex gap-6 pt-2">
+                  <div className="w-40 h-5 bg-slate-300 rounded" />
+                  <div className="w-40 h-5 bg-slate-300 rounded" />
+                </div>
+              </div>
+              <div className="hidden lg:block h-full bg-slate-300/60 rounded-2xl" />
+            </div>
+          </div>
+
+          {/* Detailed Sections Grid Skeleton */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-8">
+              <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm space-y-4">
+                <div className="w-48 h-6 bg-slate-200 rounded" />
+                <div className="w-full h-20 bg-slate-100 rounded" />
+              </div>
+              <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm space-y-6">
+                <div className="w-56 h-6 bg-slate-200 rounded" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="h-14 bg-slate-100 rounded-2xl" />
+                  <div className="h-14 bg-slate-100 rounded-2xl" />
+                  <div className="h-14 bg-slate-100 rounded-2xl" />
+                  <div className="h-14 bg-slate-100 rounded-2xl" />
+                </div>
+              </div>
+            </div>
+            <div className="space-y-6">
+              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+                <div className="w-40 h-5 bg-slate-200 rounded" />
+                <div className="space-y-3">
+                  <div className="w-full h-4 bg-slate-100 rounded" />
+                  <div className="w-full h-4 bg-slate-100 rounded" />
+                  <div className="w-full h-4 bg-slate-100 rounded" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    );
+  }
+
   if (!course) return <div className="min-h-screen flex items-center justify-center text-slate-500 font-semibold pt-28">Course not found.</div>;
 
   return (
@@ -160,18 +239,16 @@ export default function CourseDetails() {
         </div>
 
         {/* Hero Section */}
-        <div className="rounded-3xl bg-gradient-to-r from-indigo-950 via-indigo-900 to-violet-950 p-6 sm:p-10 text-white shadow-2xl relative overflow-hidden">
+        <div className="rounded-3xl bg-[#1d5ed2] py-4 px-4 text-white shadow-2xl relative overflow-hidden">
           <div className="absolute right-0 top-0 translate-x-12 -translate-y-12 w-96 h-96 bg-white/5 rounded-full blur-3xl pointer-events-none" />
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center relative z-10">
             <div className="lg:col-span-2 space-y-4">
               <div className="flex flex-wrap items-center gap-3">
-                <span className="px-3.5 py-1 rounded-full bg-indigo-500/35 border border-indigo-400/30 text-indigo-200 text-xs font-bold uppercase tracking-wider">
+                <span className="px-3.5 py-1 rounded-full bg-white border border-indigo-400/30 text-black text-xs font-bold uppercase tracking-wider">
                   {course.category}
                 </span>
-                <span className="flex items-center gap-1.5 text-amber-400 text-xs font-bold bg-amber-400/10 border border-amber-400/20 px-3 py-1 rounded-full">
-                  <FaStar size={12} /> {course.rating} ({course.reviews} reviews)
-                </span>
+              
               </div>
 
               <h1 className="text-2xl sm:text-4xl font-black tracking-tight leading-tight">
@@ -225,12 +302,16 @@ export default function CourseDetails() {
               {/* Enroll Button */}
               <div className="pt-6">
                 <button
-                  onClick={handleEnroll}
+                  onClick={handleEnrollClick}
                   disabled={enrolling}
-                  className="flex items-center justify-center gap-2 w-full rounded-xl bg-indigo-600 py-3.5 text-xs font-bold text-white shadow-lg shadow-indigo-600/30 hover:bg-indigo-700 transition disabled:opacity-50"
+                  className="flex items-center justify-center gap-2 w-full rounded-xl bg-indigo-600 py-3.5 text-xs font-bold text-white shadow-lg shadow-indigo-600/30  transition disabled:opacity-50"
                 >
                   {enrolling ? "Processing..." : <>Enroll Now <FaArrowRight size={12} /></>}
                 </button>
+                <LoginModal 
+        isOpen={isLoginModalOpen} 
+        onClose={() => setIsLoginModalOpen(false)} 
+      />
               </div>
             </div>
           </div>

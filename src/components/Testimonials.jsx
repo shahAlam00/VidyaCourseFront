@@ -6,7 +6,7 @@ const TESTIMONIALS = [
     name: "Anjali Sharma",
     role: "Frontend Developer at TCS",
     course: "Frontend React Mastery",
-    content: "DigiCampus Academy ne mere career ko ek nayi disha di. React aur Tailwind CSS ke practical projects ne interview crack karne mein bohot madad ki!",
+    content: "VidyaUdbhav Academy ne mere career ko ek nayi disha di. React aur Tailwind CSS ke practical projects ne interview crack karne mein bohot madad ki!",
     rating: 5,
     image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400&auto=format&fit=crop",
   },

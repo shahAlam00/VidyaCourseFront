@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import {
   Menu,
   X,
@@ -85,17 +86,19 @@ export default function Navbar() {
   // =========================
   // LOGOUT
   // =========================
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("userName");
+ const handleLogout = () => {
+  localStorage.removeItem("token");
+  localStorage.removeItem("userName");
 
-    setIsLoggedIn(false);
-    setUserName("");
-    setDropdownOpen(false);
-    setOpen(false);
+  setIsLoggedIn(false);
+  setUserName("");
+  setDropdownOpen(false);
+  setOpen(false);
 
-    navigate("/login");
-  };
+  toast.success("Logged out successfully...");
+
+  navigate("/login");
+};
 
   // =========================
   // ACTIVE NAV
@@ -311,7 +314,7 @@ export default function Navbar() {
                     items-center
                     justify-center
                     rounded-lg
-                    bg-[#5B3CC4]
+                    bg-[#1D5ED2]
                     text-xs
                     font-bold
                     text-white
@@ -432,7 +435,7 @@ export default function Navbar() {
               items-center
               gap-2
               rounded-xl
-              bg-[#1D5ED2]
+              bg-[#1d5ed2]
               px-5
               py-2.5
               text-sm
@@ -442,7 +445,7 @@ export default function Navbar() {
               transition-all
               duration-200
               hover:-translate-y-0.5
-              hover:bg-[#4D32AA]
+              
               hover:shadow-[0_10px_25px_rgba(91,60,196,0.30)]
             "
           >

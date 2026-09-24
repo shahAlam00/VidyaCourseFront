@@ -17,25 +17,22 @@ import API from "../utils/axios.js";
 export default function AuthContainer() {
   const navigate = useNavigate();
 
-  // State to toggle between Login (true) and Register (false)
-  const [isLogin, setIsLogin] = useState(false);
+  // State to toggle between 'login' and 'register'
+  const [isLogin, setIsLogin] = useState(true);
 
+  // Common UI states
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Separate states for Login and Register to keep them completely isolated and clean initially
-  const [loginData, setLoginData] = useState({
-    email: "",
-    password: "",
-  });
-
-  const [registerData, setRegisterData] = useState({
+  // Form Data
+  const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
     password: "",
   });
 
+  // Errors State
   const [errors, setErrors] = useState({
     name: "",
     email: "",
@@ -44,36 +41,16 @@ export default function AuthContainer() {
     general: "",
   });
 
-  // Handle Login input changes
-  const handleLoginChange = (e) => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
-    setLoginData({ ...loginData, [name]: value });
+    setFormData({ ...formData, [name]: value });
+
     if (errors[name] || errors.general) {
       setErrors({ ...errors, [name]: "", general: "" });
     }
   };
 
-  // Handle Register input changes with strict validation filters
-  const handleRegisterChange = (e) => {
-    const { name, value } = e.target;
-    let updatedValue = value;
-
-    // Full name: allow only alphabets and spaces
-    if (name === "name") {
-      updatedValue = value.replace(/[^A-Za-z\s]/g, "");
-    }
-
-    // Phone number: allow only numbers and restrict up to 10 digits
-    if (name === "phone") {
-      updatedValue = value.replace(/\D/g, "").slice(0, 10);
-    }
-
-    setRegisterData({ ...registerData, [name]: updatedValue });
-    if (errors[name] || errors.general) {
-      setErrors({ ...errors, [name]: "", general: "" });
-    }
-  };
-
+  // Toggle mode switch handler (resets errors when switching)
   const toggleAuthMode = (loginMode) => {
     setIsLogin(loginMode);
     setErrors({ name: "", email: "", phone: "", password: "", general: "" });
@@ -85,50 +62,35 @@ export default function AuthContainer() {
     let newErrors = { name: "", email: "", phone: "", password: "", general: "" };
     let isValid = true;
 
-    if (isLogin) {
-      // Login Validations
-      if (!loginData.email) {
-        newErrors.email = "Email address is required.";
-        isValid = false;
-      } else if (!loginData.email.includes("@") || !loginData.email.includes(".")) {
-        newErrors.email = "Please enter a valid email address.";
-        isValid = false;
-      }
+    if (!isLogin && !formData.name.trim()) {
+      newErrors.name = "Full name is required.";
+      isValid = false;
+    }
 
-      if (!loginData.password) {
-        newErrors.password = "Password is required.";
-        isValid = false;
-      }
-    } else {
-      // Register Validations
-      if (!registerData.name.trim()) {
-        newErrors.name = "Full name is required.";
-        isValid = false;
-      }
+    if (!formData.email) {
+      newErrors.email = "Email address is required.";
+      isValid = false;
+    } else if (!formData.email.includes("@") || !formData.email.includes(".")) {
+      newErrors.email = "Please enter a valid email address.";
+      isValid = false;
+    }
 
-      if (!registerData.email) {
-        newErrors.email = "Email address is required.";
-        isValid = false;
-      } else if (!registerData.email.includes("@") || !registerData.email.includes(".")) {
-        newErrors.email = "Please enter a valid email address.";
-        isValid = false;
-      }
-
-      if (!registerData.phone.trim()) {
+    if (!isLogin) {
+      if (!formData.phone.trim()) {
         newErrors.phone = "Phone number is required.";
         isValid = false;
-      } else if (registerData.phone.length < 10) {
-        newErrors.phone = "Please enter a valid 10-digit phone number.";
+      } else if (formData.phone.trim().length < 10) {
+        newErrors.phone = "Please enter a valid phone number.";
         isValid = false;
       }
+    }
 
-      if (!registerData.password) {
-        newErrors.password = "Password is required.";
-        isValid = false;
-      } else if (registerData.password.length < 6) {
-        newErrors.password = "Password must be at least 6 characters long.";
-        isValid = false;
-      }
+    if (!formData.password) {
+      newErrors.password = "Password is required.";
+      isValid = false;
+    } else if (formData.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters long.";
+      isValid = false;
     }
 
     setErrors(newErrors);
@@ -137,7 +99,10 @@ export default function AuthContainer() {
     try {
       setLoading(true);
       const endpoint = isLogin ? "/auth/login" : "/auth/register";
-      const payload = isLogin ? loginData : registerData;
+      
+      const payload = isLogin
+        ? { email: formData.email, password: formData.password }
+        : { name: formData.name, email: formData.email, phone: formData.phone, password: formData.password };
 
       const response = await API.post(endpoint, payload);
 
@@ -148,7 +113,7 @@ export default function AuthContainer() {
       toast.success(isLogin ? "Login successful!" : "Account created successfully!");
       navigate(isLogin ? "/" : "/student/dashboard");
     } catch (err) {
-      const errorMsg = err.response?.data?.message || (isLogin ? "Invalid email or password." : "Registration failed. Try again.");
+      const errorMsg = err.response?.data?.message || (isLogin ? "Invalid email or password." : "Registration failed.");
       setErrors((prev) => ({ ...prev, general: errorMsg }));
       toast.error(errorMsg);
     } finally {
@@ -160,10 +125,11 @@ export default function AuthContainer() {
     <div className="min-h-screen w-full flex bg-white text-slate-900 selection:bg-[#1d5ed2] selection:text-white overflow-hidden">
       
       {/* =========================================================
-          LEFT SIDE: BRANDING & INFO PANEL
+          LEFT SIDE: BRANDING & INFO PANEL (Static & Smooth)
       ========================================================== */}
       <div className="hidden lg:flex lg:w-1/2 relative bg-sky-50/70 border-r border-sky-100 text-slate-900 flex-col justify-between p-12 overflow-hidden">
         
+        {/* Top: Back to Home */}
         <div className="relative z-10 flex items-center justify-between">
           <Link
             to="/"
@@ -177,6 +143,7 @@ export default function AuthContainer() {
           </span>
         </div>
 
+        {/* Middle: Brand Info */}
         <div className="relative z-10 my-auto py-12 space-y-8 max-w-lg">
           <div>
             <h1 className="text-4xl sm:text-5xl font-black tracking-tight leading-tight text-slate-900">
@@ -220,6 +187,7 @@ export default function AuthContainer() {
           </div>
         </div>
 
+        {/* Bottom Quote */}
         <div className="relative z-10 pt-6 border-t border-sky-200/60">
           <blockquote className="text-xs text-slate-600 italic">
             "Education is the most powerful weapon which you can use to change the world."
@@ -229,10 +197,11 @@ export default function AuthContainer() {
       </div>
 
       {/* =========================================================
-          RIGHT SIDE: FORMS CONTAINER WITH SLIDING ANIMATION
+          RIGHT SIDE: SLIDING ANIMATION CONTAINER FOR FORMS
       ========================================================== */}
       <div className="w-full lg:w-1/2 flex flex-col justify-center px-6 py-12 sm:px-12 lg:px-20 relative bg-white overflow-y-auto">
         
+        {/* Mobile Back Button */}
         <div className="absolute top-6 left-6 lg:hidden">
           <Link
             to="/"
@@ -245,6 +214,7 @@ export default function AuthContainer() {
 
         <div className="mx-auto w-full max-w-md relative overflow-hidden">
           
+          {/* SLIDING WRAPPER CONTAINER */}
           <div
             className={`flex transition-transform duration-500 ease-in-out w-[200%] ${
               isLogin ? "translate-x-0" : "-translate-x-1/2"
@@ -253,7 +223,7 @@ export default function AuthContainer() {
             
             {/* ================= FORM 1: LOGIN ================= */}
             <div className="w-1/2 pr-4">
-              <div className="mb-6">
+              <div className="mb-8">
                 <h2 className="text-3xl font-black tracking-tight text-slate-900">
                   Welcome Back
                 </h2>
@@ -263,14 +233,15 @@ export default function AuthContainer() {
               </div>
 
               {errors.general && isLogin && (
-                <div className="mb-4 rounded-xl bg-red-50 border border-red-200 p-3 text-center text-xs font-medium text-red-600">
+                <div className="mb-6 rounded-xl bg-red-50 border border-red-200 p-3 text-center text-xs font-medium text-red-600">
                   {errors.general}
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off" noValidate>
+              <form onSubmit={handleSubmit} className="space-y-4" noValidate autoComplete="off">
+                {/* Email */}
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
                     Email address
                   </label>
                   <div className="relative">
@@ -280,9 +251,8 @@ export default function AuthContainer() {
                     <input
                       type="email"
                       name="email"
-                      value={loginData.email}
-                      onChange={handleLoginChange}
-                      autoComplete="off"
+                      value={isLogin ? formData.email : ""}
+                      onChange={handleChange}
                       placeholder="Enter your email"
                       className={`w-full rounded-xl bg-slate-50 pl-11 pr-4 py-3 text-sm text-slate-900 border outline-none transition-all ${
                         errors.email && isLogin ? "border-red-500" : "border-slate-200 focus:border-[#1d5ed2]"
@@ -292,8 +262,9 @@ export default function AuthContainer() {
                   {errors.email && isLogin && <p className="mt-1 text-xs text-red-500">{errors.email}</p>}
                 </div>
 
+                {/* Password */}
                 <div>
-                  <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center justify-between mb-2">
                     <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
                       Password
                     </label>
@@ -308,9 +279,8 @@ export default function AuthContainer() {
                     <input
                       type={showPassword ? "text" : "password"}
                       name="password"
-                      value={loginData.password}
-                      onChange={handleLoginChange}
-                      autoComplete="new-password"
+                      value={isLogin ? formData.password : ""}
+                      onChange={handleChange}
                       placeholder="Enter your password"
                       className={`w-full rounded-xl bg-slate-50 pl-11 pr-12 py-3 text-sm text-slate-900 border outline-none transition-all ${
                         errors.password && isLogin ? "border-red-500" : "border-slate-200 focus:border-[#1d5ed2]"
@@ -327,16 +297,18 @@ export default function AuthContainer() {
                   {errors.password && isLogin && <p className="mt-1 text-xs text-red-500">{errors.password}</p>}
                 </div>
 
+                {/* Submit */}
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full rounded-xl bg-[#1d5ed2] px-4 py-3.5 text-sm font-bold text-white shadow-lg shadow-[#1d5ed2]/25 transition-all hover:bg-[#154bb3] mt-2 cursor-pointer"
+                  className="w-full rounded-xl bg-[#1d5ed2] px-4 py-3.5 text-sm font-bold text-white shadow-lg shadow-[#1d5ed2]/25 transition-all hover:bg-[#154bb3] mt-2"
                 >
                   {loading && isLogin ? "Signing In..." : "Sign In →"}
                 </button>
               </form>
 
-              <div className="mt-6 text-center text-sm text-slate-600">
+              {/* Toggle to Register */}
+              <div className="mt-8 text-center text-sm text-slate-600">
                 Don't have an account?{" "}
                 <button
                   type="button"
@@ -366,11 +338,11 @@ export default function AuthContainer() {
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} className="space-y-3.5" autoComplete="off" noValidate>
+              <form onSubmit={handleSubmit} className="space-y-3.5" noValidate autoComplete="off">
                 {/* Full Name */}
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                    Full Name 
+                    Full Name
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-slate-400">
@@ -379,10 +351,9 @@ export default function AuthContainer() {
                     <input
                       type="text"
                       name="name"
-                      value={registerData.name}
-                      onChange={handleRegisterChange}
-                      autoComplete="off"
-                      placeholder="Your Name"
+                      value={!isLogin ? formData.name : ""}
+                      onChange={handleChange}
+                      placeholder="Rahul Sharma"
                       className={`w-full rounded-xl bg-slate-50 pl-11 pr-4 py-2.5 text-sm text-slate-900 border outline-none transition-all ${
                         errors.name && !isLogin ? "border-red-500" : "border-slate-200 focus:border-[#1d5ed2]"
                       }`}
@@ -403,9 +374,8 @@ export default function AuthContainer() {
                     <input
                       type="email"
                       name="email"
-                      value={registerData.email}
-                      onChange={handleRegisterChange}
-                      autoComplete="off"
+                      value={!isLogin ? formData.email : ""}
+                      onChange={handleChange}
                       placeholder="you@example.com"
                       className={`w-full rounded-xl bg-slate-50 pl-11 pr-4 py-2.5 text-sm text-slate-900 border outline-none transition-all ${
                         errors.email && !isLogin ? "border-red-500" : "border-slate-200 focus:border-[#1d5ed2]"
@@ -415,24 +385,21 @@ export default function AuthContainer() {
                   {errors.email && !isLogin && <p className="mt-1 text-xs text-red-500">{errors.email}</p>}
                 </div>
 
-                {/* Phone Number (Digits only, text blocked automatically) */}
+                {/* Phone */}
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                    Phone Number 
+                    Phone Number
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-slate-400">
                       <FaPhone size={15} />
                     </div>
                     <input
-                      type="text"
-                      inputMode="numeric"
+                      type="tel"
                       name="phone"
-                      value={registerData.phone}
-                      onChange={handleRegisterChange}
-                      autoComplete="off"
-                      maxLength={10}
-                      placeholder="Your Phone Number"
+                      value={!isLogin ? formData.phone : ""}
+                      onChange={handleChange}
+                      placeholder="9876543210"
                       className={`w-full rounded-xl bg-slate-50 pl-11 pr-4 py-2.5 text-sm text-slate-900 border outline-none transition-all ${
                         errors.phone && !isLogin ? "border-red-500" : "border-slate-200 focus:border-[#1d5ed2]"
                       }`}
@@ -453,9 +420,8 @@ export default function AuthContainer() {
                     <input
                       type={showPassword ? "text" : "password"}
                       name="password"
-                      value={registerData.password}
-                      onChange={handleRegisterChange}
-                      autoComplete="new-password"
+                      value={!isLogin ? formData.password : ""}
+                      onChange={handleChange}
                       placeholder="••••••••"
                       className={`w-full rounded-xl bg-slate-50 pl-11 pr-12 py-2.5 text-sm text-slate-900 border outline-none transition-all ${
                         errors.password && !isLogin ? "border-red-500" : "border-slate-200 focus:border-[#1d5ed2]"
@@ -464,7 +430,7 @@ export default function AuthContainer() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 cursor-pointer"
+                      className="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400"
                     >
                       {showPassword ? <HiEyeOff size={18} /> : <HiEye size={18} />}
                     </button>
@@ -476,12 +442,13 @@ export default function AuthContainer() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full rounded-xl bg-[#1d5ed2] px-4 py-3 text-sm font-bold text-white shadow-lg shadow-[#1d5ed2]/25 transition-all hover:bg-[#154bb3] mt-2 cursor-pointer"
+                  className="w-full rounded-xl bg-[#1d5ed2] px-4 py-3 text-sm font-bold text-white shadow-lg shadow-[#1d5ed2]/25 transition-all hover:bg-[#154bb3] mt-2"
                 >
                   {loading && !isLogin ? "Creating Account..." : "Create Account"}
                 </button>
               </form>
 
+              {/* Toggle to Login */}
               <div className="mt-6 text-center text-sm text-slate-600">
                 Already have an account?{" "}
                 <button

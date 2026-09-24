@@ -1,4 +1,5 @@
 import { Routes, Route, useLocation } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 
 import Home from "./pages/Home";
 import Courses from "./pages/Courses";
@@ -15,6 +16,9 @@ import Success from "./components/Success";
 import CoursePlayer from "./components/CoursePlayer";
 import SuccessStory from "./pages/SuccessStory";
 import ScrollToTop from "./components/ScrollToTop";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermService from "./pages/TermService";
+import CookiePolicy from "./pages/CookiePolicy";
 
 function App() {
   const location = useLocation();
@@ -31,21 +35,24 @@ function App() {
 
   return (
     <>
+      {/* Toast Notifications */}
+<Toaster
+  position="top-right"
+  reverseOrder={false}
+  toastOptions={{
+    duration: 3000,
+  }}
+/>
+
       {/* Automatically scroll to top whenever route changes */}
       <ScrollToTop />
 
       {!hideLayout && <Navbar />}
 
       <Routes>
-        <Route
-          path="/"
-          element={<Home />}
-        />
+        <Route path="/" element={<Home />} />
 
-        <Route
-          path="/courses"
-          element={<Courses />}
-        />
+        <Route path="/courses" element={<Courses />} />
 
         <Route
           path="/courses/:id"
@@ -91,6 +98,11 @@ function App() {
           path="/student/dashboard"
           element={<StudentDashboard />}
         />
+
+        {/* footer link */}
+        <Route path="/privacy-policy" element={<PrivacyPolicy/>} />
+        <Route path="/terms" element={<TermService/>} />
+        <Route path="/cookie" element={<CookiePolicy/>} />
       </Routes>
 
       {!hideLayout && <Footer />}
