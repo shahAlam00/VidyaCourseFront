@@ -118,7 +118,7 @@ const Footer = () => {
             <ul className="mt-4 space-y-3.5 text-sm text-[var(--color-muted)]">
               <li className="flex items-start gap-3">
                 <IoLocationSharp size={18} className="text-[var(--color-primary)] shrink-0 mt-1" />
-                <span>Gaur City Center, 8th Floor, Greater Noida</span>
+                <span>Gaur City Center, 6th Floor, Greater Noida</span>
               </li>
               <li className="flex items-center gap-3">
                 <FaPhoneAlt size={15} className="text-[var(--color-primary)] shrink-0" />
